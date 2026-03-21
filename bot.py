@@ -2,6 +2,7 @@ import discord
 from discord import app_commands
 import asyncio
 import io
+import json
 import config
 
 intents = discord.Intents.default()
@@ -241,7 +242,7 @@ class CloseTicketView(discord.ui.View):
         )
         log_chan = bot.get_channel(config.get("TICKET_CHANNEL_ID"))
         if log_chan:
-            await log_chan.send(content=f"📁 Ticket Closed: `{interaction.channel.name}`", file=file)
+            await log_chan.send(file=file)
 
         await asyncio.sleep(3)
         await interaction.channel.delete()
@@ -275,14 +276,12 @@ async def setup(
     embed.set_footer(text="You can now use /bugticket, /feedbackticket, /supportticket")
     await interaction.response.send_message(embed=embed, ephemeral=True)
 
-
 @tree.command(name="bugticket", description="Create a bug report embed (Staff only)")
 async def bugticket(interaction: discord.Interaction):
     if not has_staff_role(interaction):
         await interaction.response.send_message("❌ You need the staff role to use this command.", ephemeral=True)
         return
     await interaction.response.send_modal(TicketSetupModal("bug"))
-
 
 @tree.command(name="feedbackticket", description="Create a feedback embed (Staff only)")
 async def feedbackticket(interaction: discord.Interaction):
@@ -291,7 +290,6 @@ async def feedbackticket(interaction: discord.Interaction):
         return
     await interaction.response.send_modal(TicketSetupModal("feedback"))
 
-
 @tree.command(name="supportticket", description="Create a support request embed (Staff only)")
 async def supportticket(interaction: discord.Interaction):
     if not has_staff_role(interaction):
@@ -299,6 +297,24 @@ async def supportticket(interaction: discord.Interaction):
         return
     await interaction.response.send_modal(TicketSetupModal("support"))
 
+@tree.command(name="about", description="Show information about WTicket")
+async def about(interaction: discord.Interaction):
+    with open("about.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    embed = discord.Embed(
+        title=f"✨ {data['bot_name']}",
+        description=data["description"],
+        color=discord.Color.blurple(),
+    )
+    embed.add_field(name="Version", value=data["version"], inline=True)
+    embed.add_field(name="Developer", value=data["developer"], inline=True)
+    embed.add_field(name="Features", value="\n".join(f"• {f}" for f in data["features"]), inline=False)
+    embed.add_field(name="Note", value=data["credits"], inline=False)
+    embed.add_field(name="⚖️ " + data["license"], value="", inline=True)
+    embed.add_field(name="GitHub", value=f"[Source Code]({data['github_repo']})", inline=True)
+    embed.set_footer(text=f"Made by {data['developer']}")
+    await interaction.response.send_message(embed=embed)
 
 @tree.command(name="viewconfig", description="Show current bot configuration (Staff only)")
 async def viewconfig(interaction: discord.Interaction):
@@ -327,7 +343,7 @@ async def on_ready():
         print(f"🔐 Staff role: {config.get('STAFF_ROLE_ID')}")
     else:
         print("⚠️  Not configured yet — run /setup in Discord")
-    print("⚡ Slash commands synced: /setup /bugticket /feedbackticket /supportticket /viewconfig")
+    print("⚡ Slash commands synced: /setup /bugticket /feedbackticket /supportticket /viewconfig /about")
 
 
 bot.run(config.TOKEN)
