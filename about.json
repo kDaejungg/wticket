@@ -1,0 +1,18 @@
+{
+  "bot_name": "WTicket",
+  "version": "1.0.0",
+  "developer": "Enes Ramazan Whitelineage",
+  "license": "MIT License",
+  "description": "A Discord ticket bot with slash commands, supporting bug reports, feedback, and support requests.",
+  "features": [
+    "Bug Report Tickets",
+    "Feedback Tickets",
+    "Support Request Tickets",
+    "Staff Role Based Permissions",
+    "Ticket Transcripts",
+    "In-Discord Configuration via /setup"
+  ],
+  "credits": "This project is licensed under the MIT License.",
+  "language": "English",
+  "github_repo": "https://github.com/whitelineage/wticket"
+}
