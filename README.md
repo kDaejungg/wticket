@@ -158,9 +158,11 @@ After running the bot, follow these steps to invite it to your server:
 Under **Bot Permissions**, check exactly the following:
 
 **General Permissions**
+
 ✅ Manage Channels
 
 **Text Permissions**
+
 ✅ Send Messages
 
 ✅ Create Public Threads
