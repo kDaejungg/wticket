@@ -5,9 +5,7 @@
   "license": "MIT License",
   "description": "A Discord ticket bot with slash commands, supporting bug reports, feedback, and support requests.",
   "features": [
-    "Bug Report Tickets",
-    "Feedback Tickets",
-    "Support Request Tickets",
+    "Multiple Ticket Types (Normal, Bug, Feedback, Support)",
     "Staff Role Based Permissions",
     "Ticket Transcripts",
     "In-Discord Configuration via /setup"
