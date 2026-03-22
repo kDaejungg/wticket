@@ -1,4 +1,4 @@
-# WTicket (v1.0.1)
+# WTicket (v1.0.0)
 A Discord ticket bot with slash commands, supporting bug reports, feedback, and support requests. Configured entirely through Discord without touching any config files.
 
 ## ⚠️ If you only want to add the bot to your server, use this link and ignore the steps below: [![Discord Invite](https://img.shields.io/badge/Discord-Add_to_Server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/oauth2/authorize?client_id=1485006350265090239&permissions=8&integration_type=0&scope=bot)
