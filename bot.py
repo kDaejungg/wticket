@@ -26,7 +26,15 @@ def not_configured(interaction: discord.Interaction) -> bool:
     return False
 
 TICKET_TYPES = {
-    "bug": {
+    "ticket":{
+        "emoji": "🎫",
+        "color": discord.Color.dark_grey(),
+        "label": "Ticket",
+        "questions": [
+            "Describe your issue or request:",
+        ],
+    },
+    "bug":{
         "emoji": "🐛",
         "color": discord.Color.red(),
         "label": "Bug Report",
@@ -75,7 +83,7 @@ class TicketSetupModal(discord.ui.Modal):
         )
         self.button_label = discord.ui.TextInput(
             label="Button Label",
-            default=f"{data['emoji']} Open Ticket",
+            default=f"Open Ticket",
             max_length=80,
         )
 
@@ -240,8 +248,15 @@ class CloseTicketView(discord.ui.View):
             io.BytesIO(log_str.encode()),
             filename=f"transcript-{interaction.channel.name}.txt",
         )
-        log_chan = bot.get_channel(config.get("TICKET_CHANNEL_ID"))
+        log_chan = bot.get_channel(config.get("LOG_CHANNEL_ID"))
         if log_chan:
+            # Ensure bot can send to log channel regardless of channel permissions
+            await log_chan.set_permissions(
+                interaction.guild.me,
+                send_messages=True,
+                attach_files=True,
+                view_channel=True,
+            )
             await log_chan.send(file=file)
 
         await asyncio.sleep(3)
@@ -249,14 +264,16 @@ class CloseTicketView(discord.ui.View):
 
 @tree.command(name="setup", description="Configure WTicket (Admin only)")
 @app_commands.describe(
-    ticket_channel="Channel where ticket embeds and logs will be posted",
+    ticket_channel="Channel where ticket embeds will be posted",
     staff_role="Role that can manage tickets",
+    log_channel="Channel where ticket transcripts will be sent (Staff only)",
     ping_role="Role to ping when a new ticket is opened (optional)",
 )
 async def setup(
     interaction: discord.Interaction,
     ticket_channel: discord.TextChannel,
     staff_role: discord.Role,
+    log_channel: discord.TextChannel,
     ping_role: discord.Role = None,
 ):
     if not interaction.user.guild_permissions.administrator:
@@ -267,14 +284,24 @@ async def setup(
 
     config.set("TICKET_CHANNEL_ID", ticket_channel.id)
     config.set("STAFF_ROLE_ID", staff_role.id)
+    config.set("LOG_CHANNEL_ID", log_channel.id)
     config.set("PING_ROLE_ID", ping_role.id if ping_role else None)
 
     embed = discord.Embed(title="✅ WTicket Configured", color=discord.Color.green())
     embed.add_field(name="Ticket Channel", value=ticket_channel.mention, inline=False)
+    embed.add_field(name="Log Channel", value=log_channel.mention, inline=False)
     embed.add_field(name="Staff Role", value=staff_role.mention, inline=False)
     embed.add_field(name="Ping Role", value=ping_role.mention if ping_role else "Not set", inline=False)
     embed.set_footer(text="You can now use /bugticket, /feedbackticket, /supportticket")
     await interaction.response.send_message(embed=embed, ephemeral=True)
+
+
+@tree.command(name="ticket", description="Create a ticket embed (Staff only)")
+async def bugticket(interaction: discord.Interaction):
+    if not has_staff_role(interaction):
+        await interaction.response.send_message("❌ You need the staff role to use this command.", ephemeral=True)
+        return
+    await interaction.response.send_modal(TicketSetupModal("ticket"))
 
 @tree.command(name="bugticket", description="Create a bug report embed (Staff only)")
 async def bugticket(interaction: discord.Interaction):
@@ -283,6 +310,7 @@ async def bugticket(interaction: discord.Interaction):
         return
     await interaction.response.send_modal(TicketSetupModal("bug"))
 
+
 @tree.command(name="feedbackticket", description="Create a feedback embed (Staff only)")
 async def feedbackticket(interaction: discord.Interaction):
     if not has_staff_role(interaction):
@@ -290,12 +318,15 @@ async def feedbackticket(interaction: discord.Interaction):
         return
     await interaction.response.send_modal(TicketSetupModal("feedback"))
 
+
 @tree.command(name="supportticket", description="Create a support request embed (Staff only)")
 async def supportticket(interaction: discord.Interaction):
     if not has_staff_role(interaction):
         await interaction.response.send_message("❌ You need the staff role to use this command.", ephemeral=True)
         return
     await interaction.response.send_modal(TicketSetupModal("support"))
+
+
 
 @tree.command(name="about", description="Show information about WTicket")
 async def about(interaction: discord.Interaction):
@@ -313,7 +344,7 @@ async def about(interaction: discord.Interaction):
     embed.add_field(name="Note", value=data["credits"], inline=False)
     embed.add_field(name="⚖️ " + data["license"], value="", inline=True)
     embed.add_field(name="GitHub", value=f"[Source Code]({data['github_repo']})", inline=True)
-    embed.set_footer(text=f"Made by {data['developer']}")
+    embed.set_footer(text=f"Made with 🎫 by {data['developer']}")
     await interaction.response.send_message(embed=embed)
 
 @tree.command(name="viewconfig", description="Show current bot configuration (Staff only)")
@@ -324,9 +355,11 @@ async def viewconfig(interaction: discord.Interaction):
 
     embed = discord.Embed(title="⚙️ Current Configuration", color=discord.Color.blurple())
     ch_id = config.get("TICKET_CHANNEL_ID")
+    log_id = config.get("LOG_CHANNEL_ID")
     sr_id = config.get("STAFF_ROLE_ID")
     pr_id = config.get("PING_ROLE_ID")
     embed.add_field(name="Ticket Channel", value=f"<#{ch_id}>" if ch_id else "Not set", inline=False)
+    embed.add_field(name="Log Channel", value=f"<#{log_id}>" if log_id else "Not set", inline=False)
     embed.add_field(name="Staff Role", value=f"<@&{sr_id}>" if sr_id else "Not set", inline=False)
     embed.add_field(name="Ping Role", value=f"<@&{pr_id}>" if pr_id else "Not set", inline=False)
     await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -337,6 +370,17 @@ async def on_ready():
         bot.add_view(OpenTicketView(t, "Open Ticket"))
     bot.add_view(CloseTicketView(0))
     await tree.sync()
+
+    # Create "WTicket" role in every guild if it doesn't exist, then assign to bot
+    for guild in bot.guilds:
+        role = discord.utils.get(guild.roles, name="WTicket")
+        if not role:
+            role = await guild.create_role(name="WTicket", reason="WTicket bot role")
+            print(f"✅ Created 'WTicket' role in {guild.name}")
+        if role not in guild.me.roles:
+            await guild.me.add_roles(role, reason="WTicket bot role")
+            print(f"🎫 Assigned 'WTicket' role in {guild.name}")
+
     print(f"✅ Bot ready: {bot.user} ({bot.user.id})")
     if config.is_configured():
         print(f"📌 Ticket channel: {config.get('TICKET_CHANNEL_ID')}")
