@@ -1,7 +1,7 @@
-# WTicket (v1.0.0)
+# WTicket (v1.0.1)
 A Discord ticket bot with slash commands, supporting bug reports, feedback, and support requests. Configured entirely through Discord without touching any config files.
 
-## ⚠️ If you only want to add the bot to your server, use this link and ignore the steps below: [![Discord Invite](https://img.shields.io/badge/Discord-Add_to_Server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/oauth2/authorize?client_id=1485006350265090239&permissions=6192846772238416&integration_type=0&scope=bot)
+## ⚠️ If you only want to add the bot to your server, use this link and ignore the steps below: [![Discord Invite](https://img.shields.io/badge/Discord-Add_to_Server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/oauth2/authorize?client_id=1485006350265090239&permissions=8&integration_type=0&scope=bot)
 
 ---
 # Installation
@@ -38,7 +38,7 @@ Python is usually pre-installed on Linux. Open your terminal and follow these st
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/whitelineage/wticket.git
+   git clone https://github.com/kDaejungg/wticket.git
    ```
 
    ⚠️ FOLLOW THE CONFIGURATION STEPS MENTIONED ABOVE BEFORE CONTINUING
@@ -75,7 +75,7 @@ You can use PowerShell or Command Prompt (CMD). Make sure Python is added to you
 
 1. **Clone the repository:**
    ```powershell
-   git clone https://github.com/whitelineage/wticket.git
+   git clone https://github.com/kDaejungg/wticket.git
    ```
 
    ⚠️ FOLLOW THE CONFIGURATION STEPS MENTIONED ABOVE BEFORE CONTINUING
@@ -112,7 +112,7 @@ Mac users can follow these steps using the Terminal app:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/whitelineage/wticket.git
+   git clone https://github.com/kDaejungg/wticket.git
    ```
 
    ⚠️ FOLLOW THE CONFIGURATION STEPS MENTIONED ABOVE BEFORE CONTINUING
